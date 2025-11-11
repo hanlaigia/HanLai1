@@ -9,6 +9,7 @@ from RetailsManager import Ui_App
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
+from sklearn.linear_model import LinearRegression
 
 from connector import Connector
 from Cau9 import data_product, data_category
@@ -28,6 +29,15 @@ def df_to_table(tbl, df: pd.DataFrame):
             tbl.setItem(r, c, QTableWidgetItem(str(df.iat[r, c])))
 
 
+def decode_timeindex(ti):
+    year = ti // 12
+    month = ti % 12
+    if month == 0:
+        month = 12
+        year -= 1
+    return f"{month:02d}/{year}"
+
+
 class App(QWidget, Ui_App):
     def __init__(self):
         super().__init__()
@@ -38,32 +48,39 @@ class App(QWidget, Ui_App):
         self.km = None
         self._cluster_base = None
 
-        # ==============================
-        # THỐNG KÊ
-        # ==============================
+        # ============================== Thống kê ==============================
         self.btn_stat_2.clicked.connect(self.stat_2)
         self.btn_stat_3.clicked.connect(self.stat_3)
         self.btn_stat_4.clicked.connect(self.stat_4)
         self.btn_stat_5.clicked.connect(self.stat_5)
 
-        # ==============================
-        # KHÁCH HÀNG
-        # ==============================
+        # ============================== Khách hàng ==============================
         self.btn_load.clicked.connect(self.load_customer)
 
-        # ==============================
-        # PHÂN CỤM
-        # ==============================
+        # ============================== Phân cụm ==============================
         self.btn_train.clicked.connect(self.train_cluster)
         self.btn_showc.clicked.connect(self.show_cluster)
 
-        # ==============================
-        # DỰ BÁO 1 NĂM (12 tháng)
-        # ==============================
+        # ============================== Dự báo ==============================
         self.btn_cat.clicked.connect(self.forecast_cat)
         self.btn_prod.clicked.connect(self.forecast_prod)
 
-    # ====================== DB QUERY ======================
+        # ============================== Style nút ==============================
+        style = """
+        QPushButton {
+            background-color: #0078D7;
+            color: white;
+            font-weight: bold;
+            border-radius: 6px;
+            padding: 6px;
+        }
+        QPushButton:hover {
+            background-color: #005EA6;
+        }
+        """
+        self.setStyleSheet(style)
+
+    # ====================== DB ======================
     def _q(self, sql):
         try:
             cur = self.conn.cursor()
@@ -88,7 +105,7 @@ class App(QWidget, Ui_App):
             traceback.print_exc()
             return pd.DataFrame()
 
-    # ====================== THỐNG KÊ ======================
+    # ====================== Thống kê ======================
     def stat_2(self):
         sql = """
         SELECT p.ProductID,p.Name AS ProductName,
@@ -124,7 +141,7 @@ class App(QWidget, Ui_App):
         JOIN product p ON p.ProductID = od.ProductID
         JOIN subcategory sc ON sc.SubCategoryID = p.ProductSubcategoryID
         JOIN category c ON c.CategoryID = sc.CategoryID
-        GROUP BY c.CategoryID, c.Name,Year,Month
+        GROUP BY c.CategoryID,c.Name,Year,Month
         ORDER BY Year,Month;
         """
         df_to_table(self.tbl_stats, self._q(sql))
@@ -141,7 +158,7 @@ class App(QWidget, Ui_App):
         """
         df_to_table(self.tbl_stats, self._q(sql))
 
-    # ====================== KHÁCH HÀNG ======================
+    # ====================== Khách hàng ======================
     def load_customer(self):
         cid = self.inp_cid.text().strip()
         if not cid:
@@ -151,13 +168,13 @@ class App(QWidget, Ui_App):
             SELECT o.OrderID,o.OrderDate,o.DueDate,o.ShipDate,
                    SUM(od.OrderQty * od.UnitPrice) AS OrderTotal
             FROM orders o
-            JOIN orderdetails od ON od.OrderID = o.OrderID
+            JOIN orderdetails od ON od.OrderID=o.OrderID
             WHERE o.CustomerID=%s
             GROUP BY o.OrderID
             ORDER BY STR_TO_DATE(o.OrderDate,'%d/%m/%Y') DESC
         """, (cid,)))
 
-    # ====================== PHÂN CỤM ======================
+    # ====================== Phân cụm ======================
     def train_cluster(self):
         sql_main = """
         SELECT c.CustomerID,
@@ -200,52 +217,57 @@ class App(QWidget, Ui_App):
         cid = int(self.cbo_cluster.currentText())
         df_to_table(self.tbl_cluster, self._cluster_base[self._cluster_base["cluster"] == cid])
 
-    # ====================== DỰ BÁO 12 THÁNG ======================
+    # ====================== Dự báo Category ======================
     def forecast_cat(self):
         val = self.inp_cat.text().strip()
         if not val:
             return
         cid = int(val)
+
         hist = data_category[data_category["CategoryID"] == cid].copy()
         if hist.empty:
-            df_to_table(self.tbl_hist, pd.DataFrame([["Không có dữ liệu"]], columns=["Thông báo"]))
+            df_to_table(self.tbl_hist_cat, pd.DataFrame([["Không có dữ liệu"]], columns=["Thông báo"]))
+            df_to_table(self.tbl_fore_cat, pd.DataFrame())
             return
 
-        # Hiển thị lịch sử
-        df_to_table(self.tbl_hist, hist)
+        hist["Period"] = hist["TimeIndex"].apply(decode_timeindex)
+        df_to_table(self.tbl_hist_cat, hist[["Period", "TotalQty"]])
 
-        # Train mô hình
-        from sklearn.linear_model import LinearRegression
         model = LinearRegression().fit(hist[["TimeIndex"]], hist["TotalQty"])
-
-        # Dự báo 12 tháng
         last = hist["TimeIndex"].max()
         fut = pd.DataFrame({"TimeIndex": range(last+1, last+13)})
         fut["ForecastQty"] = model.predict(fut[["TimeIndex"]])
+        fut["Period"] = fut["TimeIndex"].apply(decode_timeindex)
 
-        df_to_table(self.tbl_fore, fut)
+        df_to_table(self.tbl_fore_cat, fut[["Period", "ForecastQty"]])
 
+    # ====================== Dự báo Product ======================
     def forecast_prod(self):
         val = self.inp_prod.text().strip()
         if not val:
             return
         pid = int(val)
+
         hist = data_product[data_product["ProductID"] == pid].copy()
         if hist.empty:
-            df_to_table(self.tbl_hist, pd.DataFrame([["Không có dữ liệu"]], columns=["Thông báo"]))
+            df_to_table(self.tbl_hist_prod, pd.DataFrame([["Không có dữ liệu"]], columns=["Thông báo"]))
+            df_to_table(self.tbl_fore_prod, pd.DataFrame())
             return
 
-        # Hiển thị lịch sử
-        df_to_table(self.tbl_hist, hist)
+        hist["Period"] = hist["TimeIndex"].apply(decode_timeindex)
+        df_to_table(self.tbl_hist_prod, hist[["Period", "TotalQty"]])
 
-        # Train mô hình
-        from sklearn.linear_model import LinearRegression
         model = LinearRegression().fit(hist[["TimeIndex"]], hist["TotalQty"])
-
-        # Dự báo 12 tháng
         last = hist["TimeIndex"].max()
         fut = pd.DataFrame({"TimeIndex": range(last+1, last+13)})
         fut["ForecastQty"] = model.predict(fut[["TimeIndex"]])
+        fut["Period"] = fut["TimeIndex"].apply(decode_timeindex)
 
-        df_to_table(self.tbl_fore, fut)
+        df_to_table(self.tbl_fore_prod, fut[["Period", "ForecastQty"]])
 
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    w = App()
+    w.show()
+    sys.exit(app.exec())
