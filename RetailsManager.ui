@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>App</class>
+ <widget class="QWidget" name="App">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1200</width>
+    <height>800</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Retails Manager</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QTabWidget" name="tabs">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+
+     <!-- TAB: THỐNG KÊ -->
+     <widget class="QWidget" name="tab_stats">
+      <attribute name="title">
+       <string>Thống kê</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_stats">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_stats_buttons">
+         <item><widget class="QPushButton" name="btn_stat_2"><property name="text"><string>2) Doanh số theo sản phẩm</string></property></widget></item>
+         <item><widget class="QPushButton" name="btn_stat_3"><property name="text"><string>3) Doanh thu theo danh mục</string></property></widget></item>
+         <item><widget class="QPushButton" name="btn_stat_4"><property name="text"><string>4) Doanh thu danh mục theo Tháng+Năm</string></property></widget></item>
+         <item><widget class="QPushButton" name="btn_stat_5"><property name="text"><string>5) Đơn giao sớm ≥3 ngày</string></property></widget></item>
+        </layout>
+       </item>
+       <item><widget class="QTableWidget" name="tbl_stats"/></item>
+      </layout>
+     </widget>
+
+     <!-- TAB: KHÁCH HÀNG -->
+     <widget class="QWidget" name="tab_customer">
+      <attribute name="title">
+       <string>Khách hàng</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_customer">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_customer_inputs">
+         <item><widget class="QLabel" name="label_customer_id"><property name="text"><string>CustomerID</string></property></widget></item>
+         <item><widget class="QLineEdit" name="inp_cid"/></item>
+         <item><widget class="QPushButton" name="btn_load"><property name="text"><string>Tải</string></property></widget></item>
+        </layout>
+       </item>
+       <item><widget class="QLabel" name="label_thong_tin"><property name="text"><string>Thông tin</string></property></widget></item>
+       <item><widget class="QTableWidget" name="tbl_cust"/></item>
+       <item><widget class="QLabel" name="label_don_hang"><property name="text"><string>Đơn hàng</string></property></widget></item>
+       <item><widget class="QTableWidget" name="tbl_orders"/></item>
+      </layout>
+     </widget>
+
+     <!-- TAB: PHÂN CỤM -->
+     <widget class="QWidget" name="tab_cluster">
+      <attribute name="title">
+       <string>Phân cụm</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_cluster">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_kmeans">
+         <item><widget class="QLabel" name="label_k"><property name="text"><string>Số cụm (k)</string></property></widget></item>
+         <item><widget class="QComboBox" name="cbo_k">
+           <item><property name="text"><string>3</string></property></item>
+           <item><property name="text"><string>4</string></property></item>
+           <item><property name="text"><string>5</string></property></item>
+           <item><property name="text"><string>6</string></property></item>
+         </widget></item>
+         <item><widget class="QPushButton" name="btn_train"><property name="text"><string>Huấn luyện KMeans</string></property></widget></item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_cluster_view">
+         <item><widget class="QLabel" name="label_cluster"><property name="text"><string>Cụm</string></property></widget></item>
+         <item><widget class="QComboBox" name="cbo_cluster"/></item>
+         <item><widget class="QPushButton" name="btn_showc"><property name="text"><string>Xem cụm</string></property></widget></item>
+        </layout>
+       </item>
+       <item><widget class="QTableWidget" name="tbl_cluster"/></item>
+      </layout>
+     </widget>
+
+     <!-- TAB: DỰ BÁO -->
+     <widget class="QWidget" name="tab_forecast">
+      <attribute name="title">
+       <string>Dự báo</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_forecast">
+
+       <item>
+        <widget class="QTabWidget" name="forecast_tabs">
+
+         <widget class="QWidget" name="tab_forecast_cat">
+          <attribute name="title"><string>Dự báo theo Category</string></attribute>
+          <layout class="QVBoxLayout" name="vl_cat">
+           <item>
+            <layout class="QHBoxLayout" name="hl_cat_input">
+             <item><widget class="QLabel" name="label_category"><property name="text"><string>CategoryID</string></property></widget></item>
+             <item><widget class="QLineEdit" name="inp_cat"/></item>
+             <item><widget class="QPushButton" name="btn_cat"><property name="text"><string>Dự báo 12 tháng</string></property></widget></item>
+            </layout>
+           </item>
+           <item><widget class="QLabel" name="label_hist_cat"><property name="text"><string>Lịch sử</string></property></widget></item>
+           <item><widget class="QTableWidget" name="tbl_hist_cat"/></item>
+           <item><widget class="QLabel" name="label_fore_cat"><property name="text"><string>Dự báo</string></property></widget></item>
+           <item><widget class="QTableWidget" name="tbl_fore_cat"/></item>
+          </layout>
+         </widget>
+
+         <widget class="QWidget" name="tab_forecast_prod">
+          <attribute name="title"><string>Dự báo theo Product</string></attribute>
+          <layout class="QVBoxLayout" name="vl_prod">
+           <item>
+            <layout class="QHBoxLayout" name="hl_prod_input">
+             <item><widget class="QLabel" name="label_product"><property name="text"><string>ProductID</string></property></widget></item>
+             <item><widget class="QLineEdit" name="inp_prod"/></item>
+             <item><widget class="QPushButton" name="btn_prod"><property name="text"><string>Dự báo 12 tháng</string></property></widget></item>
+            </layout>
+           </item>
+           <item><widget class="QLabel" name="label_hist_prod"><property name="text"><string>Lịch sử</string></property></widget></item>
+           <item><widget class="QTableWidget" name="tbl_hist_prod"/></item>
+           <item><widget class="QLabel" name="label_fore_prod"><property name="text"><string>Dự báo</string></property></widget></item>
+           <item><widget class="QTableWidget" name="tbl_fore_prod"/></item>
+          </layout>
+         </widget>
+
+        </widget>
+       </item>
+
+      </layout>
+     </widget>
+
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

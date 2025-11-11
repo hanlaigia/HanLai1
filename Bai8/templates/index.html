@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Clusters</title>
+</head>
+<body>
+
+<h2>Select Cluster</h2>
+<form method="POST">
+    <select name="cluster">
+        {% for c in clusters %}
+        <option value="{{ c }}">{{ c }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">View</button>
+</form>
+
+{% if result %}
+<table border="1" cellpadding="6">
+<tr>
+    <th>CustomerID</th>
+    <th>n_orders</th>
+    <th>total_spend</th>
+    <th>avg_order_value</th>
+    <th>n_categories_bought</th>
+    <th>days_since_last_order</th>
+</tr>
+{% for row in result %}
+<tr>
+    <td>{{ row.CustomerID }}</td>
+    <td>{{ row.n_orders }}</td>
+    <td>{{ row.total_spend }}</td>
+    <td>{{ row.avg_order_value }}</td>
+    <td>{{ row.n_categories_bought }}</td>
+    <td>{{ row.days_since_last_order }}</td>
+</tr>
+{% endfor %}
+</table>
+{% endif %}
+
+</body>
+</html>
